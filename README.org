@@ -1,0 +1,12 @@
+#+title:Datalog parsers for PureScript
+
+* Supported formats
+
+| Syntax flavour                   | constants | variables      | rule | support       |
+|----------------------------------+-----------+----------------+------+---------------|
+| 'Standard' Datalog (like Prolog) | lowercase | uppercase      | ~:-~ | getting there |
+| Prolog                           | lowercase | uppercase      | ~:-~ |               |
+| Datalog with ~?~ variables       |           |                |      |               |
+| Datomic                          |           | start with ~?~ |      |               |
+| LogiQL                           |           |                | ~<-~ |               |
+ 
