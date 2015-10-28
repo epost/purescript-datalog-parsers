@@ -23,7 +23,7 @@ import Text.Parsing.Parser.String
 import Text.Parsing.Parser.Token
 import Text.Parsing.Parser.Pos
 
-import ParsingUtil
+import Datalog.ParsingUtil
 
 
 data Term = Con String | Var String
