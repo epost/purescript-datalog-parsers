@@ -1,12 +1,35 @@
-#+title:Datalog parsers for PureScript
+# #+title:Datalog parsers for PureScript
 
 * Supported formats
 
 | Syntax flavour                   | constants | variables      | rule | support       |
 |----------------------------------+-----------+----------------+------+---------------|
-| 'Standard' Datalog (like Prolog) | lowercase | uppercase      | ~:-~ | getting there |
+| 'Standard' datalog (like Prolog) | lowercase | uppercase      | ~:-~ | getting there |
 | Prolog                           | lowercase | uppercase      | ~:-~ |               |
-| Datalog with ~?~ variables       |           |                |      |               |
+| Datalog with ~?~ variables       |           | start with ~?~ | ~:-~ |               |
 | Datomic                          |           | start with ~?~ |      |               |
 | LogiQL                           |           |                | ~<-~ |               |
- 
+
+
+* Examples
+
+Syntax example adapted from MITRE datalog:
+
+#+BEGIN_SRC prolog
+% facts
+parent(john, douglas).
+parent(bob, john).
+parent(ebbon, bob).
+
+% rules
+ancestor(A, B) :-
+  parent(A, B).
+
+ancestor(A, B) :-
+  parent(A, C),
+  D = C,
+  ancestor(D, B).
+
+% query
+ancestor(A, B)?
+#+END_SRC
