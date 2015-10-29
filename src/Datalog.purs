@@ -30,6 +30,8 @@ data Term = Con String | Var String
 
 data Atom = Pred String (Array Term)
 
+data Rule = Rule Atom (Array Atom)
+
 instance termShow :: Show Term where
   show (Var name) = "(Var " ++ name ++ ")"
   show (Con name) = "(Con " ++ name ++ ")"
@@ -37,31 +39,43 @@ instance termShow :: Show Term where
 instance atomShow :: Show Atom where
   show (Pred name vars) = "(Pred " ++ name ++ " " ++ show vars ++ ")"
 
+instance ruleShow :: Show Rule where
+  show (Rule head body) = "(Rule " ++ show head ++ " :- " ++ show body ++ ")"
+
 term :: Parser String Term
-term = con <|> var
-
-con :: Parser String Term
-con = Con <$> conName
-
-var :: Parser String Term
-var = Var <$> varName
+term = (Con <$> conName)
+   <|> (Var <$> varName)
 
 varName :: Parser String String
-varName = someOf isAlphaUpper
+varName = nameStartingWith isAlphaUpper
 
 conName :: Parser String String
-conName = someOf isAlphaLower
+conName = nameStartingWith isAlphaLower
+
+predName :: Parser String String
+predName = nameStartingWith isAlphaLower
+
+nameStartingWith :: (Char -> Boolean) -> Parser String String
+nameStartingWith prefixCharPred = do
+  prefixChar <- satisfy prefixCharPred
+  suffix <- option "" (someOf $ isAlphaNum || (== '_'))
+  return $ toString prefixChar ++ suffix
 
 atom :: Parser String Atom
 atom = do
   pn <- predName
   string "("
-  vars <- term `sepBy1` string ","
+  vars <- (spaces *> term <* spaces) `sepBy1` string ","
   string ")"
   return $ Pred pn (fromList vars)
 
-predName :: Parser String String
-predName = someOf isAlphaNum
-
 clauses :: Parser String (List Atom)
-clauses = atom `sepEndBy1` string "."
+clauses = atom `sepEndBy` string "."
+
+rule :: Parser String Rule
+rule = do
+  head <- atom
+  inSpaces (string ":-")
+  bodyAtoms <- (spaces *> atom <* spaces) `sepEndBy` string ","
+  string "."
+  return $ Rule head (fromList bodyAtoms)
