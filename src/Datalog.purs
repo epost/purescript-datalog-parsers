@@ -70,7 +70,7 @@ atom = do
   return $ Pred pn (fromList vars)
 
 clauses :: Parser String (List Atom)
-clauses = atom `sepEndBy` string "."
+clauses = atom `sepEndBy` (spaces *> string "." <* spaces)
 
 rule :: Parser String Rule
 rule = do
