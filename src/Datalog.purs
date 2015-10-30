@@ -43,7 +43,7 @@ instance ruleShow :: Show Rule where
   show (Rule head body) = "(Rule " ++ show head ++ " :- " ++ show body ++ ")"
 
 term :: Parser String Term
-term = (Con <$> conName)
+term = (Con <$> (conName  <|> conStr))
    <|> (Var <$> varName)
 
 varName :: Parser String String
@@ -51,6 +51,10 @@ varName = nameStartingWith isAlphaUpper
 
 conName :: Parser String String
 conName = nameStartingWith isAlphaLower
+
+conStr :: Parser String String
+conStr = between (string "\"") (string "\"")
+                 (someOf $ isAlphaNum || isWhitespace || (== '_') || (== '-'))
 
 predName :: Parser String String
 predName = nameStartingWith isAlphaLower
