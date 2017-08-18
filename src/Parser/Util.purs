@@ -1,28 +1,15 @@
-module Datalog.ParsingUtil where
+module Datalog.Parser.Util where
 
 import Prelude
-
 import Data.Array (some, many)
-import Data.Either
-import Data.Identity
-import Data.Maybe
-import Data.String (fromCharArray, split)
+import Data.String (fromCharArray)
 import Data.String as String
 import Data.String.Regex as R
-import Data.String.Regex.Flags
+import Data.String.Regex.Flags (noFlags)
 import Data.String.Regex.Unsafe (unsafeRegex)
-import Data.List (List(..))
-import Data.Functor (($>))
-
-import Control.Alt
-import Control.Alternative
-import Control.Apply ((<*), (*>))
-import Control.Lazy
-
-import Text.Parsing.Parser
-import Text.Parsing.Parser.Combinators
-import Text.Parsing.Parser.String
-import Text.Parsing.Parser.Pos
+import Text.Parsing.Parser (Parser)
+import Text.Parsing.Parser.Combinators (skipMany)
+import Text.Parsing.Parser.String (satisfy)
 
 -- adapted from https://github.com/slamdata/purescript-markdown/blob/master/src/Text/Markdown/SlamDown/Parser/Inline.purs
 

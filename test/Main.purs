@@ -5,11 +5,10 @@ import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE, log)
 import Data.Either (Either(..))
 import Data.List (many, fromFoldable)
-import Datalog.Parser (atom, clauses, rule, term, Term(..), Atom(..), Rule(..))
+import Datalog.AST (Term(..), Atom(..), Rule(..))
+import Datalog.Parser (atom, clauses, rule, term)
 import Text.Parsing.Parser (runParser)
 import Text.Parsing.Parser.String (satisfy)
-
-import Control.Monad.Aff
 import Test.Spec                  (describe, pending, it)
 import Test.Spec.Runner           (run)
 import Test.Spec.Assertions       (shouldEqual)
