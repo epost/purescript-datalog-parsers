@@ -2,7 +2,7 @@
   "name": "purescript-datalog-parsers",
   "license": "MIT",
   "authors": [
-      "Erik Post <erik@shinsetsu.nl> (http://www.shinsetsu.nl)"
+    "Erik Post <erik@shinsetsu.nl> (http://www.shinsetsu.nl)"
   ],
   "version": "0.1.0",
   "repository": {
@@ -16,7 +16,9 @@
     "output"
   ],
   "dependencies": {
-    "purescript-console": "^0.1.0",
-    "purescript-parsing": "~0.7.0"
+    "purescript-parsing": "^4.3.1"
+  },
+  "devDependencies": {
+    "purescript-console": "^3.0.0"
   }
 }

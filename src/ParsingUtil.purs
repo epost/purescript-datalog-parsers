@@ -6,10 +6,12 @@ import Data.Array (some, many)
 import Data.Either
 import Data.Identity
 import Data.Maybe
-import Data.Char (toString)
-import Data.String (fromChar, fromCharArray, split)
+import Data.String (fromCharArray, split)
+import Data.String as String
 import Data.String.Regex as R
-import Data.List (List(..), toList, fromList)
+import Data.String.Regex.Flags
+import Data.String.Regex.Unsafe (unsafeRegex)
+import Data.List (List(..))
 import Data.Functor (($>))
 
 import Control.Alt
@@ -42,12 +44,9 @@ isDigit :: Char -> Boolean
 isDigit c = c >= '0' && c <= '9'
 
 isWhitespace :: Char -> Boolean
-isWhitespace = R.test wsRegex <<< fromChar
+isWhitespace = R.test wsRegex <<< String.singleton
   where
-  wsRegex :: R.Regex
-  wsRegex = R.regex "^\\s$" flags
-
-  flags :: R.RegexFlags
+  wsRegex = unsafeRegex "^\\s$" noFlags
   flags = { unicode: false
           , sticky: false
           , multiline: false

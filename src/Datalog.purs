@@ -1,14 +1,14 @@
 module Datalog.Parser where
 
-import Prelude
+import Prelude hiding (between)
 
-import Data.Array (some)
+import Data.Array (some, fromFoldable)
 import Data.Either
 import Data.Identity
 import Data.Maybe
-import Data.Char (toString)
-import Data.String (fromChar, fromCharArray, split)
-import Data.List (List(..), many, toList, fromList)
+import Data.String (fromCharArray, split)
+import Data.String as String
+import Data.List (List(..), many)
 import Data.Functor (($>))
 
 import Control.Alt
@@ -25,7 +25,6 @@ import Text.Parsing.Parser.Pos
 
 import Datalog.ParsingUtil
 
-
 data Term = Con String | Var String
 
 data Atom = Pred String (Array Term)
@@ -33,14 +32,14 @@ data Atom = Pred String (Array Term)
 data Rule = Rule Atom (Array Atom)
 
 instance termShow :: Show Term where
-  show (Var name) = "(Var " ++ name ++ ")"
-  show (Con name) = "(Con " ++ name ++ ")"
+  show (Var name) = "(Var " <> name <> ")"
+  show (Con name) = "(Con " <> name <> ")"
 
 instance atomShow :: Show Atom where
-  show (Pred name vars) = "(Pred " ++ name ++ " " ++ show vars ++ ")"
+  show (Pred name vars) = "(Pred " <> name <> " " <> show vars <> ")"
 
 instance ruleShow :: Show Rule where
-  show (Rule head body) = "(Rule " ++ show head ++ " :- " ++ show body ++ ")"
+  show (Rule head body) = "(Rule " <> show head <> " :- " <> show body <> ")"
 
 term :: Parser String Term
 term = (Con <$> (conName  <|> conStr))
@@ -54,7 +53,7 @@ conName = nameStartingWith isAlphaLower
 
 conStr :: Parser String String
 conStr = between (string "\"") (string "\"")
-                 (someOf $ isAlphaNum || isWhitespace || (== '_') || (== '-'))
+                 (someOf $ isAlphaNum || isWhitespace || (_ == '_') || (_ == '-'))
 
 predName :: Parser String String
 predName = nameStartingWith isAlphaLower
@@ -62,16 +61,16 @@ predName = nameStartingWith isAlphaLower
 nameStartingWith :: (Char -> Boolean) -> Parser String String
 nameStartingWith prefixCharPred = do
   prefixChar <- satisfy prefixCharPred
-  suffix <- option "" (someOf $ isAlphaNum || (== '_'))
-  return $ toString prefixChar ++ suffix
+  suffix <- option "" (someOf $ isAlphaNum || (_ == '_'))
+  pure $ String.singleton prefixChar <> suffix
 
 atom :: Parser String Atom
 atom = do
   pn <- predName
-  string "("
+  _ <- string "("
   vars <- (spaces *> term <* spaces) `sepBy1` string ","
-  string ")"
-  return $ Pred pn (fromList vars)
+  _ <- string ")"
+  pure $ Pred pn (fromFoldable vars)
 
 clauses :: Parser String (List Atom)
 clauses = atom `sepEndBy` (spaces *> string "." <* spaces)
@@ -79,7 +78,7 @@ clauses = atom `sepEndBy` (spaces *> string "." <* spaces)
 rule :: Parser String Rule
 rule = do
   head <- atom
-  inSpaces (string ":-")
+  _ <- inSpaces (string ":-")
   bodyAtoms <- (spaces *> atom <* spaces) `sepEndBy` string ","
-  string "."
-  return $ Rule head (fromList bodyAtoms)
+  _ <- string "."
+  pure $ Rule head (fromFoldable bodyAtoms)
