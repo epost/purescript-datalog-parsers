@@ -1,34 +1,56 @@
 module Test.Main where
 
 import Prelude
-import Datalog.Parser (atom, clauses, rule, term)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE, log)
-import Data.List (many)
+import Data.Either (Either(..))
+import Data.List (many, fromFoldable)
+import Datalog.Parser (atom, clauses, rule, term, Term(..), Atom(..), Rule(..))
 import Text.Parsing.Parser (runParser)
 import Text.Parsing.Parser.String (satisfy)
 
+import Control.Monad.Aff
+import Test.Spec                  (describe, pending, it)
+import Test.Spec.Runner           (run)
+import Test.Spec.Assertions       (shouldEqual)
+import Test.Spec.Reporter.Console (consoleReporter)
 
-main :: Eff (console :: CONSOLE) Unit
-main = do
-  log $ "              " <> (show $ runParser "a,a,a"                                       (many $ satisfy (_ == 'a')))
-  log $ "              " <> (show $ runParser "aaabbca"                                     (many $ satisfy (_ == 'a')))
-  log $ "              " <> (show $ runParser "abc,def"                                     term)
-  log $ "err:          " <> (show $ runParser "abc()"                                       atom)
-  log $ "              " <> (show $ runParser "abc(xxx)"                                    atom)
-  log $ "UPCASEVAR:    " <> (show $ runParser "abc(UPPERCASEVAR)"                           atom)
-  log $ "MixCaseVar:   " <> (show $ runParser "abc(MixedCaseVar)"                           atom)
-  log $ "con + VAR:    " <> (show $ runParser "abc(con,VAR)"                                atom)
-  log $ "              " <> (show $ runParser "abc(xxx,yyy)"                                atom)
-  log $ "string const: " <> (show $ runParser "abc(\"This is a string constant_-_\")"       atom)
-  log $ "clauses 1:    " <> (show $ runParser "path(x,y).path(y,z)"                         clauses)
-  log $ "              " <> (show $ runParser "path(x,y).path(y,z)."                        clauses)
-  log $ "clauses 3     " <> (show $ runParser "path(x,y). path(y,z)."                       clauses)
-  log $ "              " <> (show $ runParser "path(x,y). \n  path(y,z). "                  clauses)
-  log $ "              " <> (show $ runParser "path(x,   y). \n  path(y,z). "               clauses)
-  log $ "              " <> (show $ runParser "path(x   ,   y). \n  path(y,z). "            clauses)
-  log $ "camel case 1: " <> (show $ runParser "path(con , Var). \n  path(y,z). "            clauses)
-  log $ "camel case 2: " <> (show $ runParser "path(cOnSt , VAR). \n  path(y,z). "          clauses)
-  log $ "camel case 3: " <> (show $ runParser "data_con( nothing , maybe_type_con )."       clauses)
-  log $ "rule 1:       " <> (show $ runParser "happy(X) :- has_drink(X)."                   rule)
-  log $ "rule 2:       " <> (show $ runParser "happy(X) :- has_drink(X), hair_ok(E)."       rule)
+main :: _
+main = run [consoleReporter] do
+  describe "term parsers" do
+    itParses "abc,def"                                     term    $ Con "abc"
+
+  describe "predicate parsers" do
+    itParses "abc()"                                       atom    $ Pred "abc" []
+    itParses "abc(xxx)"                                    atom    $ Pred "abc" [Con "xxx"]
+    itParses "abc(UPPERCASEVAR)"                           atom    $ Pred "abc" [Var "UPPERCASEVAR"]
+    itParses "abc(MixedCaseVar)"                           atom    $ Pred "abc" [Var "MixedCaseVar"]
+    itParses "abc(con,VAR)"                                atom    $ Pred "abc" [Con "con", Var "VAR"]
+    itParses "abc(xxx, yyy)"                               atom    $ Pred "abc" [Con "xxx", Con "yyy"]
+    itParses "abc(\"This is a string constant_-_\")"       atom    $ Pred "abc" [Con "This is a string constant_-_"]
+
+  describe "clause parsers" do
+    itParses "path(x,y).path(y,z)"                         clauses $ fromFoldable [ Pred "path" [Con "x", Con "y"]
+                                                                                  , Pred "path" [Con "y", Con "z"]
+                                                                                  ]
+    itParses "path(x,y).path(y,z)."                        clauses $ fromFoldable [ Pred "path" [Con "x", Con "y"]
+                                                                                  , Pred "path" [Con "y", Con "z"]
+                                                                                  ]
+    itParses "path(x,y). path(y,z)."                       clauses $ fromFoldable [ Pred "path" [Con "x", Con "y"]
+                                                                                  , Pred "path" [Con "y", Con "z"]
+                                                                                  ]
+    itParses "path(x,y). \n path(y,z)."                    clauses $ fromFoldable [ Pred "path" [Con "x", Con "y"]
+                                                                                  , Pred "path" [Con "y", Con "z"]
+                                                                                  ]
+  describe "rule parsers" do
+    itParses "happy(X) :- has_drink(X)."                   rule    $ Rule ( Pred "happy" [Var "X"] )
+                                                                          [ Pred "has_drink" [Var "X"] ]
+    itParses "happy(X) :- has_drink(X)."                   rule    $ Rule ( Pred "happy" [Var "X"] )
+                                                                          [ Pred "has_drink" [Var "X"] ]
+    itParses "happy(X) :- has_drink(X), hair_ok(X)."       rule    $ Rule ( Pred "happy" [Var "X"] )
+                                                                          [ Pred "has_drink" [Var "X"]
+                                                                          , Pred "hair_ok"   [Var "X"] ]
+
+itParses str p exp = it ("should parse: " <> str) $ (runParser str p) `shouldParseTo` exp
+
+shouldParseTo v exp = shouldEqual v (Right exp)
