@@ -1,4 +1,4 @@
-module Datalog.Parser where
+module Language.Datalog.Parser where
 
 import Prelude hiding (between)
 import Control.Alt ((<|>))
@@ -9,8 +9,8 @@ import Text.Parsing.Parser (Parser)
 import Text.Parsing.Parser.Combinators
 import Text.Parsing.Parser.String
 
-import Datalog.AST (Atom(..), Rule(..), Term(..))
-import Datalog.Parser.Util
+import Language.Datalog.AST (Atom(..), Rule(..), Term(..))
+import Language.Datalog.Parser.Util
 
 term :: Parser String Term
 term = (Con <$> (conName  <|> conStr))

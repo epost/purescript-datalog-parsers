@@ -1,4 +1,4 @@
-module Datalog.Parser.Util where
+module Language.Datalog.Parser.Util where
 
 import Prelude
 import Data.Array (some, many)

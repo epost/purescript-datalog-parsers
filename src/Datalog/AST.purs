@@ -1,4 +1,4 @@
-module Datalog.AST where
+module Language.Datalog.AST where
 
 import Prelude hiding (between)
 
